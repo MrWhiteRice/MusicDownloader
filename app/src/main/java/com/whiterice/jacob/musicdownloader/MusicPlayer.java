@@ -95,6 +95,8 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	
 	void PlaySong(int index)
 	{
+		CreateMediaPlayer();
+		
 		try
 		{
 			//mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
