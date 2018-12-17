@@ -30,12 +30,6 @@ public class MainActivity extends Activity implements View.OnClickListener
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.activity_main);
 		
-		//Request Permissions
-		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-		{
-			requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1000);
-		}
-		
 		//Init Objects
 		musicPlayerButton = findViewById(R.id.MusicPlayerButton);
 		
@@ -46,6 +40,12 @@ public class MainActivity extends Activity implements View.OnClickListener
 	protected void onStart()
 	{
 		super.onStart();
+		
+		//Request Permissions
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+		{
+			requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1000);
+		}
 		
 		Intent intent = new Intent(this, MusicPlayer.class);
 		bindService(intent, connection, BIND_AUTO_CREATE);

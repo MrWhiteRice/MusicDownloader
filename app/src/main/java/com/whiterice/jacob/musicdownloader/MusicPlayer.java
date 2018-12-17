@@ -1,11 +1,14 @@
 package com.whiterice.jacob.musicdownloader;
 
+import android.Manifest;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -71,6 +74,7 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	public void onCreate()
 	{
 		super.onCreate();
+		
 		InitSongs();
 		CreateMediaPlayer();
 	}
