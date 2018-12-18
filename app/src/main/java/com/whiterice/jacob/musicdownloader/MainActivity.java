@@ -9,14 +9,16 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements View.OnClickListener
 {
 	//Class Variables
-	MusicPlayer mp;
+	public static MusicPlayer mp;
 
 	//Object variables
 	Button musicPlayerButton;
@@ -58,7 +60,7 @@ public class MainActivity extends Activity implements View.OnClickListener
 		{
 			bound = true;
 			MusicPlayer.LocalBinder mLocalBinder = (MusicPlayer.LocalBinder)service;
-			mp= mLocalBinder.getMainInstance();
+			mp = mLocalBinder.getMainInstance();
 		}
 		
 		@Override
@@ -68,6 +70,25 @@ public class MainActivity extends Activity implements View.OnClickListener
 			mp = null;
 		}
 	};
+	
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults)
+	{
+		switch(requestCode)
+		{
+			case 1000:
+				if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
+				{
+					Toast.makeText(this, "Permission Granted!", Toast.LENGTH_SHORT).show();
+				}
+				else
+				{
+					Toast.makeText(this, "Permission Denied!", Toast.LENGTH_SHORT).show();
+					finish();
+				}
+				break;
+		}
+	}
 	
 	@Override
 	protected void onStop()
@@ -83,7 +104,12 @@ public class MainActivity extends Activity implements View.OnClickListener
 	@Override
 	public void onClick(View v)
 	{
+		startActivity(new Intent(this, Player.class));
 		//mp.PlaySong(0);
-		mp.PlaySong(0);
+	}
+	
+	static MusicPlayer getMusicPlayer()
+	{
+		return mp;
 	}
 }

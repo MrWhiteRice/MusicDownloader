@@ -1,14 +1,11 @@
 package com.whiterice.jacob.musicdownloader;
 
-import android.Manifest;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -17,9 +14,12 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Random;
 
-public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener, MediaPlayer.OnSeekCompleteListener
+public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener
 {
+	boolean userInput;
+	boolean newSong;
 	IBinder binder = new LocalBinder();
 	
 	MediaPlayer mediaPlayer;
@@ -30,7 +30,8 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	float VOLUME_DUCK = 0.1f; //FIX VOLUME LATER
 	float VOLUME_NORMAL= 1.0f; //FIX VOLUME LATER
 	
-	int currentPosition;
+	int currentPosition = -1;
+	int selectedLoop = 0;
 	
 	MusicPlayer mService = this;
 	
@@ -89,7 +90,6 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 			mediaPlayer.setOnPreparedListener(this);
 			mediaPlayer.setOnCompletionListener(this);
 			mediaPlayer.setOnErrorListener(this);
-			mediaPlayer.setOnSeekCompleteListener(this);
 		}
 		else
 		{
@@ -97,20 +97,165 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 		}
 	}
 	
+	void PlayToggle()
+	{
+		if(mediaPlayer.isPlaying())
+		{
+			mediaPlayer.pause();
+		}
+		else
+		{
+			mediaPlayer.start();
+		}
+	}
+	
+	void NextSong(boolean user)
+	{
+		int p = currentPosition;
+		p++;
+		
+		if(p > songsList.length-1)//end of list
+		{
+			if(selectedLoop == 0)//no looping
+			{
+				if(user)//did the player press the next button
+				{
+					p = 0;//loop
+				}
+				else//song just ended
+				{
+					p = -1;//dont loop
+				}
+			}
+			else if(selectedLoop == 1)//list looping
+			{
+				p = 0;//loop
+			}
+			else if(selectedLoop == 2)//single looping
+			{
+				p = p-1;//loop song
+			}
+		}
+		else if(selectedLoop == 2)
+		{
+			p = p-1;
+		}
+		
+		PlaySong(p);
+	}
+	
+	void PrevSong()
+	{
+		int p = currentPosition;
+		p--;
+		
+		if(p < 0)
+		{
+			p = songsList.length-1;
+		}
+		
+		PlaySong(p);
+	}
+
+	String GetSong(int index)
+	{
+		if(index >= 0)
+		{
+			return songsList[index];
+		}
+		
+		return "";
+	}
+	
+	void SetUserInput(boolean set)
+	{
+		userInput = set;
+	}
+	
+	boolean GetUserInput()
+	{
+		return userInput;
+	}
+	
+	void SetNewSong(boolean set)
+	{
+		newSong = set;
+	}
+	
+	boolean GetNewSong()
+	{
+		return newSong;
+	}
+	
+	int GetCurrentIndex()
+	{
+		return currentPosition;
+	}
+	
 	void PlaySong(int index)
 	{
 		CreateMediaPlayer();
+		newSong = true;
+		
+		if(index == -1)
+		{
+			RelaxResources(true);
+			return;
+		}
 		
 		try
 		{
 			//mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 			mediaPlayer.setDataSource(audioStoragePath + "/" + songsList[index]);
 			mediaPlayer.prepareAsync();
+			
+			currentPosition = index;
+			
 		}
 		catch(IOException e)
 		{
 		
 		}
+	}
+	
+	void Loop()
+	{
+		selectedLoop++;
+		
+		if(selectedLoop > 2)
+		{
+			selectedLoop = 0;
+		}
+	}
+	
+	String GetTime(long ms)
+	{
+		int seconds = (int) (ms / 1000) % 60 ;
+		int minutes = (int) ((ms/ (1000*60)) % 60);
+		int hours   = (int) ((ms/ (1000*60*60)) % 24);
+		
+		String secs = "" + seconds;
+		
+		if(seconds < 10)
+		{
+			secs = "0" + seconds;
+		}
+		
+		if(hours == 0)
+		{
+			return "" + minutes + ":" + secs;
+		}
+		else
+		{
+			return "" + hours + ":" + minutes + ":" + secs;
+		}
+	}
+	
+	int RandomInt(int min, int max)
+	{
+		final int random = new Random().nextInt((max - min) + 1) + min;
+		
+		return random;
 	}
 	
 	/*public void play(QueueItem item, boolean reset)
@@ -171,6 +316,8 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	
 	void RelaxResources(boolean releaseMediaPlayer)
 	{
+		CreateMediaPlayer();
+		
 		mService.stopForeground(true);
 		
 		if(releaseMediaPlayer)
@@ -258,18 +405,15 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	@Override
 	public void onCompletion(MediaPlayer mp)
 	{
-	
+		if(mediaPlayer.getCurrentPosition() > 100)
+		{
+			NextSong(false);
+		}
 	}
 	
 	@Override
 	public boolean onError(MediaPlayer mp, int what, int extra)
 	{
 		return false;
-	}
-	
-	@Override
-	public void onSeekComplete(MediaPlayer mp)
-	{
-	
 	}
 }
