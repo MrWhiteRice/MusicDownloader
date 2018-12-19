@@ -49,6 +49,9 @@ public class MainActivity extends Activity implements View.OnClickListener
 		
 		//Set Up Listeners
 		musicPlayerButton.setOnClickListener(this);
+		
+		//Init Methods
+		InitSongs();
 	}
 	
 	protected void onStart()
@@ -116,8 +119,6 @@ public class MainActivity extends Activity implements View.OnClickListener
 	
 	void Init()
 	{
-		InitSongs();
-		
 		Intent intent = new Intent(this, MusicPlayer.class);
 		bindService(intent, connection, BIND_AUTO_CREATE);
 	}
@@ -146,7 +147,7 @@ public class MainActivity extends Activity implements View.OnClickListener
 		for(int x = 0; x < list.length; x++)
 		{
 			Button myButton = new Button(this);
-			myButton.setId(1000+x);
+			myButton.setContentDescription("Padoru" + x);
 			myButton.setText(list[x].replace(".mp3", ""));
 			myButton.setOnClickListener(this);
 			
@@ -169,17 +170,24 @@ public class MainActivity extends Activity implements View.OnClickListener
 	@Override
 	public void onClick(View v)
 	{
-		int id = v.getId();
-		id-=1000;
-		if(id > 999)
+		if(v.getContentDescription() != null)
 		{
-			mp.PlaySong(id);
-		}
-		else
-		{
+			String bitchId = v.getContentDescription().toString();
+			if(bitchId.contains("Padoru"))
+			{
+				int id = Integer.parseInt(bitchId.replace("Padoru", ""));
+				getMusicPlayer().PlaySong(id);
+			}
+			
 			startActivity(new Intent(this, Player.class));
 		}
-		//mp.PlaySong(0);
+
+		switch(v.getId())
+		{
+			case R.id.MusicPlayerButton:
+				startActivity(new Intent(this, Player.class));
+				break;
+		}
 	}
 	
 	static MusicPlayer getMusicPlayer()

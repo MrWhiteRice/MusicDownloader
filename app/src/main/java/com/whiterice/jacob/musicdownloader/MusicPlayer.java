@@ -16,9 +16,12 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
-public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
+public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener
+{
 	boolean userInput;
 	boolean newSong;
+	boolean shuffle;
+	
 	IBinder binder = new LocalBinder();
 	
 	MediaPlayer mediaPlayer;
@@ -38,7 +41,8 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	String[] songsList;
 	
 	//enums
-	enum PlayBackState {
+	enum PlayBackState
+	{
 		STATE_PLAYING, STATE_PAUSED, STATE_STOPPED, STATE_BUFFERING
 	}
 	
@@ -110,6 +114,12 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	
 	void NextSong(boolean user)
 	{
+		if(shuffle)
+		{
+			PlaySong(RandomInt(0, songsList.length));
+			return;
+		}
+		
 		int p = currentPosition;
 		p++;
 		
@@ -194,6 +204,7 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	void PlaySong(int index)
 	{
 		CreateMediaPlayer();
+		
 		newSong = true;
 		
 		if(index == -1)
@@ -225,6 +236,11 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 		{
 			selectedLoop = 0;
 		}
+	}
+	
+	void Shuffle()
+	{
+		shuffle = !shuffle;
 	}
 	
 	String GetTime(long ms)

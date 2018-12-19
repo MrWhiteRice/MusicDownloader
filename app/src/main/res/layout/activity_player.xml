@@ -40,7 +40,7 @@
         android:scaleType="fitCenter"
         android:src="@drawable/next"
         app:layout_constraintBottom_toBottomOf="@+id/PlayButton"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/LoopButton"
         app:layout_constraintHorizontal_bias="0.1"
         app:layout_constraintStart_toEndOf="@+id/PlayButton"
         app:layout_constraintTop_toTopOf="@+id/PlayButton" />
@@ -55,8 +55,7 @@
         android:src="@drawable/prev"
         app:layout_constraintBottom_toBottomOf="@+id/PlayButton"
         app:layout_constraintEnd_toStartOf="@+id/PlayButton"
-        app:layout_constraintHorizontal_bias="0.9"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/ShuffleButton"
         app:layout_constraintTop_toTopOf="@+id/PlayButton" />
 
     <ImageButton
@@ -71,6 +70,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.1"
         app:layout_constraintStart_toEndOf="@+id/NextButton"
+        app:layout_constraintTop_toTopOf="@+id/PlayButton" />
+
+    <ImageButton
+        android:id="@+id/ShuffleButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@color/clear"
+        android:contentDescription="@string/playButtonDesc"
+        android:scaleType="fitCenter"
+        android:src="@drawable/shuffle"
+        app:layout_constraintBottom_toBottomOf="@+id/PlayButton"
+        app:layout_constraintEnd_toStartOf="@+id/PrevButton"
+        app:layout_constraintHorizontal_bias="0.9"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@+id/PlayButton" />
 
     <TextView

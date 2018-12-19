@@ -20,6 +20,7 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 	ImageButton nextButton;
 	ImageButton prevButton;
 	ImageButton loopButton;
+	ImageButton shuffleButton;
 	Button backButton;
 	SeekBar seekBar;
 	TextView elapsedTime;
@@ -41,6 +42,7 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 		prevButton = findViewById(R.id.PrevButton);
 		loopButton = findViewById(R.id.LoopButton);
 		backButton = findViewById(R.id.BackButton);
+		shuffleButton = findViewById(R.id.ShuffleButton);
 		
 		seekBar = findViewById(R.id.SeekBarMusic);
 		seekBar.getProgressDrawable().setColorFilter(getResources().getColor(R.color.blue), PorterDuff.Mode.SRC_IN);
@@ -56,6 +58,7 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 		prevButton.setOnClickListener(this);
 		loopButton.setOnClickListener(this);
 		backButton.setOnClickListener(this);
+		shuffleButton.setOnClickListener(this);
 		seekBar.setOnSeekBarChangeListener(this);
 		
 		handler = new Handler();
@@ -70,13 +73,11 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 		{
 			if(MainActivity.mp != null)
 			{
-				if(MainActivity.mp.mediaPlayer != null)
-				{
-					UpdatePlayIcon();
-					UpdateLoopIcon();
-					UpdateSeekBar();
-					UpdateDetails();
-				}
+				UpdatePlayIcon();
+				UpdateLoopIcon();
+				UpdateSeekBar();
+				UpdateShuffleIcon();
+				UpdateDetails();
 			}
 			
 			handler.postDelayed(this, 100);
@@ -92,6 +93,18 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 		else
 		{
 			playButton.setImageResource(R.drawable.play);
+		}
+	}
+	
+	private void UpdateShuffleIcon()
+	{
+		if(MainActivity.mp.shuffle)
+		{
+			shuffleButton.setColorFilter(Color.parseColor(getResources().getString(0+R.color.blue)));
+		}
+		else
+		{
+			shuffleButton.setColorFilter(null);
 		}
 	}
 	
@@ -154,6 +167,9 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 				break;
 			case R.id.LoopButton:
 				MainActivity.mp.Loop();
+				break;
+			case R.id.ShuffleButton:
+				MainActivity.mp.Shuffle();
 				break;
 			case R.id.BackButton:
 				finish();
