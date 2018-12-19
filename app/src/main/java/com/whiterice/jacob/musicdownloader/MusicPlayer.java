@@ -16,8 +16,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
-public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener
-{
+public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener {
 	boolean userInput;
 	boolean newSong;
 	IBinder binder = new LocalBinder();
@@ -28,7 +27,7 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	public PlayBackState state;
 	
 	float VOLUME_DUCK = 0.1f; //FIX VOLUME LATER
-	float VOLUME_NORMAL= 1.0f; //FIX VOLUME LATER
+	float VOLUME_NORMAL = 1.0f; //FIX VOLUME LATER
 	
 	int currentPosition = -1;
 	int selectedLoop = 0;
@@ -39,24 +38,18 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	String[] songsList;
 	
 	//enums
-	enum PlayBackState
-	{
-		STATE_PLAYING,
-		STATE_PAUSED,
-		STATE_STOPPED,
-		STATE_BUFFERING
+	enum PlayBackState {
+		STATE_PLAYING, STATE_PAUSED, STATE_STOPPED, STATE_BUFFERING
 	}
 	
 	//System Methods
-	public IBinder onBind(Intent intent)
-	{
+	public IBinder onBind(Intent intent) {
 		return binder;
 	}
 	
 	public class LocalBinder extends Binder
 	{
-		public MusicPlayer getMainInstance()
-		{
+		public MusicPlayer getMainInstance() {
 			return MusicPlayer.this;
 		}
 	}
@@ -78,6 +71,12 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 		
 		InitSongs();
 		CreateMediaPlayer();
+	}
+	
+	void InitSongs()
+	{
+		songsList = MainActivity.getSongsList();
+		audioStoragePath = MainActivity.getAudioStoragePath();
 	}
 	
 	void CreateMediaPlayer()
@@ -377,23 +376,6 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 			mCallback.onPlaybackStatusChanged(state);
 		}
 	}*/
-	
-	void InitSongs()
-	{
-		Log.e("DONE!", "LOADED ALL MUSIC!");
-		
-		audioStoragePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Music";
-		File[] f = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Music").listFiles();
-		
-		songsList = new String[f.length];
-		
-		for(int x = 0; x < f.length; x++)
-		{
-			songsList[x] = f[x].getName();
-		}
-		
-		Arrays.sort(songsList);
-	}
 	
 	@Override
 	public void onPrepared(MediaPlayer mp)

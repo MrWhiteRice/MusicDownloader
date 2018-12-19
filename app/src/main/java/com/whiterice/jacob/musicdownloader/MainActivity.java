@@ -8,12 +8,18 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import java.io.File;
+import java.util.Arrays;
 
 public class MainActivity extends Activity implements View.OnClickListener
 {
@@ -23,8 +29,13 @@ public class MainActivity extends Activity implements View.OnClickListener
 	//Object variables
 	Button musicPlayerButton;
 	
+	LinearLayout linearLayout;
+	
 	//Other Variables
 	boolean bound;
+	
+	public static String[] songsList;
+	public static String audioStoragePath;
 	
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -34,6 +45,7 @@ public class MainActivity extends Activity implements View.OnClickListener
 		
 		//Init Objects
 		musicPlayerButton = findViewById(R.id.MusicPlayerButton);
+		linearLayout = findViewById(R.id.LinearLayout);
 		
 		//Set Up Listeners
 		musicPlayerButton.setOnClickListener(this);
@@ -48,9 +60,10 @@ public class MainActivity extends Activity implements View.OnClickListener
 		{
 			requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1000);
 		}
-		
-		Intent intent = new Intent(this, MusicPlayer.class);
-		bindService(intent, connection, BIND_AUTO_CREATE);
+		else
+		{
+			Init();
+		}
 	}
 	
 	ServiceConnection connection = new ServiceConnection()
@@ -80,6 +93,7 @@ public class MainActivity extends Activity implements View.OnClickListener
 				if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
 				{
 					Toast.makeText(this, "Permission Granted!", Toast.LENGTH_SHORT).show();
+					Init();
 				}
 				else
 				{
@@ -87,6 +101,57 @@ public class MainActivity extends Activity implements View.OnClickListener
 					finish();
 				}
 				break;
+		}
+	}
+	
+	public static String[] getSongsList()
+	{
+		return songsList;
+	}
+	
+	public static String getAudioStoragePath()
+	{
+		return audioStoragePath;
+	}
+	
+	void Init()
+	{
+		InitSongs();
+		
+		Intent intent = new Intent(this, MusicPlayer.class);
+		bindService(intent, connection, BIND_AUTO_CREATE);
+	}
+	
+	void InitSongs()
+	{
+		Log.e("DONE!", "LOADED ALL MUSIC!");
+		
+		audioStoragePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Music";
+		File[] f = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Music").listFiles();
+		
+		songsList = new String[f.length];
+		
+		for(int x = 0; x < f.length; x++)
+		{
+			songsList[x] = f[x].getName();
+		}
+		
+		Arrays.sort(songsList);
+		
+		CreateList(songsList);
+	}
+	
+	void CreateList(String[] list)
+	{
+		for(int x = 0; x < list.length; x++)
+		{
+			Button myButton = new Button(this);
+			myButton.setId(1000+x);
+			myButton.setText(list[x].replace(".mp3", ""));
+			myButton.setOnClickListener(this);
+			
+			LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+			linearLayout.addView(myButton, lp);
 		}
 	}
 	
@@ -104,7 +169,16 @@ public class MainActivity extends Activity implements View.OnClickListener
 	@Override
 	public void onClick(View v)
 	{
-		startActivity(new Intent(this, Player.class));
+		int id = v.getId();
+		id-=1000;
+		if(id > 999)
+		{
+			mp.PlaySong(id);
+		}
+		else
+		{
+			startActivity(new Intent(this, Player.class));
+		}
 		//mp.PlaySong(0);
 	}
 	
