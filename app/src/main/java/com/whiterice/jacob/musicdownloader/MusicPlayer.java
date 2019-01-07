@@ -6,20 +6,16 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
-import android.os.Environment;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 
-public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener
+public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener
 {
 	boolean userInput;
-	boolean newSong;
 	boolean shuffle;
 	
 	IBinder binder = new LocalBinder();
@@ -27,24 +23,11 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	MediaPlayer mediaPlayer;
 	AudioManager audioManager;
 	
-	public PlayBackState state;
-	
-	float VOLUME_DUCK = 0.1f; //FIX VOLUME LATER
-	float VOLUME_NORMAL = 1.0f; //FIX VOLUME LATER
-	
 	int currentPosition = -1;
 	int selectedLoop = 0;
 	
-	MusicPlayer mService = this;
-	
 	String audioStoragePath;
 	String[] songsList;
-	
-	//enums
-	enum PlayBackState
-	{
-		STATE_PLAYING, STATE_PAUSED, STATE_STOPPED, STATE_BUFFERING
-	}
 	
 	//System Methods
 	public IBinder onBind(Intent intent) {
@@ -88,11 +71,10 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 		if(mediaPlayer == null)
 		{
 			mediaPlayer = new MediaPlayer();
-			mediaPlayer.setWakeMode(mService.getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+			mediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 			
 			mediaPlayer.setOnPreparedListener(this);
 			mediaPlayer.setOnCompletionListener(this);
-			mediaPlayer.setOnErrorListener(this);
 		}
 		else
 		{
@@ -110,6 +92,11 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 		{
 			mediaPlayer.start();
 		}
+	}
+	
+	public void SeekTo(int pos)
+	{
+		mediaPlayer.seekTo(pos);
 	}
 	
 	void NextSong(boolean user)
@@ -133,7 +120,7 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 				}
 				else//song just ended
 				{
-					p = -1;//dont loop
+					return;
 				}
 			}
 			else if(selectedLoop == 1)//list looping
@@ -186,16 +173,6 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 		return userInput;
 	}
 	
-	void SetNewSong(boolean set)
-	{
-		newSong = set;
-	}
-	
-	boolean GetNewSong()
-	{
-		return newSong;
-	}
-	
 	int GetCurrentIndex()
 	{
 		return currentPosition;
@@ -204,8 +181,6 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	void PlaySong(int index)
 	{
 		CreateMediaPlayer();
-		
-		newSong = true;
 		
 		if(index == -1)
 		{
@@ -220,7 +195,6 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 			mediaPlayer.prepareAsync();
 			
 			currentPosition = index;
-			
 		}
 		catch(IOException e)
 		{
@@ -238,9 +212,19 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 		}
 	}
 	
+	int GetSelectedLoop()
+	{
+		return selectedLoop;
+	}
+	
 	void Shuffle()
 	{
 		shuffle = !shuffle;
+	}
+	
+	boolean GetShuffle()
+	{
+		return shuffle;
 	}
 	
 	String GetTime(long ms)
@@ -273,67 +257,16 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 		return random;
 	}
 	
-	/*public void play(QueueItem item, boolean reset)
+	boolean IsPlaying()
 	{
-		mPlayOnFocusGain = true;
-		
-		String mediaId = item.getDescription().getMediaId();
-		boolean mediaHasChanged = !TextUtils.equals(mediaId, mCurrentMediaId) || reset;
-		if (mediaHasChanged)
-		{
-			mCurrentPosition = 0;
-			mCurrentMediaId = mediaId;
-		}
-		
-		if(state == PlayBackState.STATE_PAUSED && !mediaHasChanged && mediaPlayer != null)
-		{
-			// Begin playing if we were paused before and the media hasn't changed
-			ConfigureMediaPlayerState();
-		}
-		else
-		{
-			// Recreate the media player
-			state = PlayBackState.STATE_STOPPED;
-			RelaxResources(false); // release everything except MediaPlayer
-			
-			// Get the source for the music track
-			MediaMetadata track = mMusicProvider.getMusic(mediaId);
-			String source = track.getString(MusicProvider.CUSTOM_METADATA_TRACK_SOURCE);
-			
-			try
-			{
-				CreateMediaPlayer();
-				
-				state = PlayBackState.STATE_BUFFERING;
-				
-				mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-				mediaPlayer.setDataSource(source);
-				
-				// Starts preparing the media player in the background. When
-				// it's done, it will call our OnPreparedListener (that is,
-				// the onPrepared() method on this class, since we set the
-				// listener to 'this'). Until the media player is prepared,
-				// we *cannot* call start() on it!
-				mediaPlayer.prepareAsync();
-				
-				if (mCallback != null)
-				{
-					mCallback.onPlaybackStatusChanged(state);
-				}
-				
-			}
-			catch (IOException ex)
-			{
-			
-			}
-		}
-	}*/
+		return mediaPlayer.isPlaying();
+	}
 	
 	void RelaxResources(boolean releaseMediaPlayer)
 	{
 		CreateMediaPlayer();
 		
-		mService.stopForeground(true);
+		stopForeground(true);
 		
 		if(releaseMediaPlayer)
 		{
@@ -343,60 +276,14 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 		}
 	}
 	
-	/*void ConfigureMediaPlayerState()
+	void Play()
 	{
-		if (mAudioFocus == AUDIO_NO_FOCUS_NO_DUCK)
-		{
-			// If we don't have audio focus and can't duck, we have to pause,
-			if (state == PlayBackState.STATE_PLAYING)
-			{
-				pause();
-			}
-		}
-		else
-		{  // we have audio focus:
-			if (mAudioFocus == AUDIO_NO_FOCUS_CAN_DUCK)
-			{
-				mediaPlayer.setVolume(VOLUME_DUCK, VOLUME_DUCK); // we'll be relatively quiet
-			}
-			else
-			{
-				if (mediaPlayer != null)
-				{
-					mediaPlayer.setVolume(VOLUME_NORMAL, VOLUME_NORMAL); // we can be loud again
-				} // else do something for remote client.
-			}
-			
-			// If we were playing when we lost focus, we need to resume playing.
-			if (mPlayOnFocusGain)
-			{
-				if (mediaPlayer != null && !mediaPlayer.isPlaying())
-				{
-					if (currentPosition == mediaPlayer.getCurrentPosition())
-					{
-						mediaPlayer.start();
-						state = PlayBackState.STATE_PLAYING;
-					}
-					else
-					{
-						mediaPlayer.seekTo(currentPosition);
-						state = PlayBackState.STATE_BUFFERING;
-					}
-				}
-				mPlayOnFocusGain = false;
-			}
-		}
-		
-		if (mCallback != null)
-		{
-			mCallback.onPlaybackStatusChanged(state);
-		}
-	}*/
+		mediaPlayer.start();
+	}
 	
 	@Override
 	public void onPrepared(MediaPlayer mp)
 	{
-		//ConfigureMediaPlayerState();
 		mp.start();
 	}
 	
@@ -405,13 +292,10 @@ public class MusicPlayer extends Service implements MediaPlayer.OnPreparedListen
 	{
 		if(mediaPlayer.getCurrentPosition() > 100)
 		{
-			NextSong(false);
+			if(!userInput)
+			{
+				NextSong(false);
+			}
 		}
-	}
-	
-	@Override
-	public boolean onError(MediaPlayer mp, int what, int extra)
-	{
-		return false;
 	}
 }

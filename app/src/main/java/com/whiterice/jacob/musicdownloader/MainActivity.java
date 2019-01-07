@@ -50,14 +50,6 @@ public class MainActivity extends Activity implements View.OnClickListener
 		//Set Up Listeners
 		musicPlayerButton.setOnClickListener(this);
 		
-		//Init Methods
-		InitSongs();
-	}
-	
-	protected void onStart()
-	{
-		super.onStart();
-		
 		//Request Permissions
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
 		{
@@ -65,6 +57,7 @@ public class MainActivity extends Activity implements View.OnClickListener
 		}
 		else
 		{
+			InitSongs();
 			Init();
 		}
 	}
@@ -96,6 +89,7 @@ public class MainActivity extends Activity implements View.OnClickListener
 				if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
 				{
 					Toast.makeText(this, "Permission Granted!", Toast.LENGTH_SHORT).show();
+					InitSongs();
 					Init();
 				}
 				else

@@ -15,6 +15,7 @@ import android.widget.TextView;
 public class Player extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener
 {
 	Handler handler;
+	MusicPlayer mp;
 	
 	ImageButton playButton;
 	ImageButton nextButton;
@@ -61,6 +62,8 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 		shuffleButton.setOnClickListener(this);
 		seekBar.setOnSeekBarChangeListener(this);
 		
+		mp = MainActivity.getMusicPlayer();
+		
 		handler = new Handler();
 		handler.removeCallbacks(UIUpdate);
 		handler.postDelayed(UIUpdate, 100);
@@ -71,14 +74,14 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 		@Override
 		public void run()
 		{
-			if(MainActivity.mp != null)
-			{
+			//if(mp.mediaPlayer != null)
+			//{
 				UpdatePlayIcon();
 				UpdateLoopIcon();
 				UpdateSeekBar();
 				UpdateShuffleIcon();
 				UpdateDetails();
-			}
+			//}
 			
 			handler.postDelayed(this, 100);
 		}
@@ -86,9 +89,16 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 	
 	private void UpdatePlayIcon()
 	{
-		if(MainActivity.mp.mediaPlayer.isPlaying())
+		if(mp.mediaPlayer != null)
 		{
-			playButton.setImageResource(R.drawable.pause);
+			if(mp.IsPlaying())
+			{
+				playButton.setImageResource(R.drawable.pause);
+			}
+			else
+			{
+				playButton.setImageResource(R.drawable.play);
+			}
 		}
 		else
 		{
@@ -98,7 +108,7 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 	
 	private void UpdateShuffleIcon()
 	{
-		if(MainActivity.mp.shuffle)
+		if(mp.GetShuffle())
 		{
 			shuffleButton.setColorFilter(Color.parseColor(getResources().getString(0+R.color.blue)));
 		}
@@ -110,7 +120,7 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 	
 	private void UpdateLoopIcon()
 	{
-		switch(MainActivity.mp.selectedLoop)
+		switch(mp.GetSelectedLoop())
 		{
 			case 0://no loop
 				loopButton.setColorFilter(null);
@@ -129,26 +139,23 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 	
 	private void UpdateSeekBar()
 	{
-		if(MainActivity.mp.GetNewSong())
+		if(mp.mediaPlayer != null)
 		{
-			seekBar.setProgress(0);
-			seekBar.setMax(MainActivity.mp.mediaPlayer.getDuration());
-			MainActivity.mp.SetNewSong(false);
+			if(!mp.GetUserInput())
+			{
+				seekBar.setProgress(mp.mediaPlayer.getCurrentPosition());
+				elapsedTime.setText(mp.GetTime(mp.mediaPlayer.getCurrentPosition()));
+				
+				seekBar.setMax(mp.mediaPlayer.getDuration());
+				totalTime.setText(mp.GetTime(mp.mediaPlayer.getDuration()));
+			}
 		}
-		
-		if(!MainActivity.mp.GetUserInput())
-		{
-			seekBar.setProgress(MainActivity.mp.mediaPlayer.getCurrentPosition());
-		}
-		
-		elapsedTime.setText(MainActivity.mp.GetTime(MainActivity.mp.mediaPlayer.getCurrentPosition()));
-		totalTime.setText(MainActivity.mp.GetTime(MainActivity.mp.mediaPlayer.getDuration()));
 	}
 	
 	private void UpdateDetails()
 	{
-		songName.setText(""+MainActivity.mp.GetSong(MainActivity.mp.GetCurrentIndex()));
-		artistName.setText(""+MainActivity.mp.GetCurrentIndex());
+		songName.setText(""+mp.GetSong(mp.GetCurrentIndex()));
+		artistName.setText(""+mp.GetCurrentIndex());
 	}
 	
 	@Override
@@ -157,19 +164,19 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 		switch(view.getId())
 		{
 			case R.id.PlayButton:
-				MainActivity.mp.PlayToggle();
+				mp.PlayToggle();
 				break;
 			case R.id.NextButton:
-				MainActivity.mp.NextSong(true);
+				mp.NextSong(true);
 				break;
 			case R.id.PrevButton:
-				MainActivity.mp.PrevSong();
+				mp.PrevSong();
 				break;
 			case R.id.LoopButton:
-				MainActivity.mp.Loop();
+				mp.Loop();
 				break;
 			case R.id.ShuffleButton:
-				MainActivity.mp.Shuffle();
+				mp.Shuffle();
 				break;
 			case R.id.BackButton:
 				finish();
@@ -180,23 +187,24 @@ public class Player extends AppCompatActivity implements View.OnClickListener, S
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int i, boolean b)
 	{
-		if(MainActivity.mp.GetUserInput())
+		if(mp.GetUserInput())
 		{
 			seekBar.setProgress(i);
-			MainActivity.mp.mediaPlayer.seekTo(i);
-			MainActivity.mp.SetUserInput(false);
+			elapsedTime.setText(mp.GetTime(mp.mediaPlayer.getCurrentPosition()));
+			mp.SeekTo(i);
+			mp.Play();
 		}
 	}
 	
 	@Override
 	public void onStartTrackingTouch(SeekBar seekBar)
 	{
-		MainActivity.mp.SetUserInput(true);
+		mp.SetUserInput(true);
 	}
 	
 	@Override
 	public void onStopTrackingTouch(SeekBar seekBar)
 	{
-		MainActivity.mp.SetUserInput(false);
+		mp.SetUserInput(false);
 	}
 }
